@@ -9,8 +9,6 @@
 class Robot : public Wheel
 {
 private:
-    int lx, ly; /*half of the distance between front wheels and 𝑙𝑖𝑦
-    half of the distance between front wheel and the rear wheels.*/
     void setMotor(int in, int in2, int dtc, int state1, int state2, int pwmC);
 
 public:
@@ -18,20 +16,20 @@ public:
     Wheel *wheel_2;
     Wheel *wheel_3;
     Wheel *wheel_4;
-
+    float X, Y, TETA;
     Robot(Wheel *wheel1,
           Wheel *wheel2,
           Wheel *wheel3,
-          Wheel *wheel4, int lix, int liy)
+          Wheel *wheel4, float x, float y, float teta)
     {
         // Create Wheel objects and assign pointers
         wheel_1 = wheel1;
         wheel_2 = wheel2;
         wheel_3 = wheel3;
         wheel_4 = wheel4;
-
-        lx = lix;
-        ly = liy;
+        X = x;
+        Y = y;
+        TETA = teta;
     }
 
     // Destructor para liberar la memoria de los objetos Wheel
@@ -49,5 +47,10 @@ public:
     void moveRight(int dutyC);
     void rotation(int dutyC);
     void stop();
+    void setPosition(float x, float y, float teta);
+    float posX();
+    float posY();
+    float posA();
 };
+
 #endif

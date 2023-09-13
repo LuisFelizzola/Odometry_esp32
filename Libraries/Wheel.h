@@ -9,13 +9,13 @@ private:
     int in1;
     int in2;
     int en;
-    int r;
+    float r;
     int pwm;
 
 public:
     Wheel(int in_1, int in_2, int en_); // parametros para el mdulo l298n
 
-    Wheel(int in_1, int in_2, int en_, int radius, int pwmCh) // parametros para el modulo l298n con el esp32
+    Wheel(int in_1, int in_2, int en_, float radius, int pwmCh) // parametros para el modulo l298n con el esp32
     {
         in1 = in_1;
         in2 = in_2;

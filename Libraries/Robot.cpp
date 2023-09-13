@@ -52,3 +52,21 @@ void Robot::setMotor(int in, int in2, int dtc, int state1, int state2, int pwmC)
     digitalWrite(in2, state2);
     ledcWrite(pwmC, dtc);
 }
+void Robot::setPosition(float x, float y, float teta)
+{
+    X = x;
+    Y = y;
+    TETA = teta;
+}
+float Robot::posX()
+{
+    return X;
+}
+float Robot::posY()
+{
+    return Y;
+}
+float Robot::posA()
+{
+    return TETA;
+}
