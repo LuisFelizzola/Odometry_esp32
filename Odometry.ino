@@ -60,6 +60,7 @@ Robot Mercury(&wh1,&wh2,&wh3,&wh4,xi,yi,tetai);
 void setup() {
 
   xTaskCreatePinnedToCore(printing,"Tarea_0",1000,NULL,1,&Tarea0,0);
+  xTaskCreatePinnedToCore(Navigation,"Tarea_0",1000,NULL,1,&Tarea1,1);
   attachInterrupt(encoderA1, readEncoder1, RISING);
   attachInterrupt(encoderA2, readEncoder2, RISING);
   attachInterrupt(encoderA3, readEncoder3, RISING);
@@ -71,20 +72,24 @@ void setup() {
 }
 //LEO EL ENCODER DEL MOTOR 1
 void readEncoder1(){//void *parameter
+    if(mv!='S'){ //si el robot no esta en reposo(estacionario)
     int b= digitalRead(encoderB1);
     pos_i1=incrementarPos(b,pos_i1);
+    }
 }
 //LEO EL ENCODER DEL MOTOR 2
 void readEncoder2(){//void *parameter
     int b= digitalRead(encoderB2);
     pos_i2=incrementarPos(b,pos_i2);
 }
+    int c=0;
 void printing(void *parameter){
   while(1==1){
     char a=Serial.read();
     if(a=='F'){ //forward (same velocyty for all of them)
     Mercury.moveForward(dtc); //metodo de la clase Robot, solo necesita como parametro la velocidad
     mv='F';
+    c=0;
     }else if (a=='B'){ //backward (same velocyty for all of them)
     Mercury.moveBackward(dtc);
     mv='B';
@@ -100,14 +105,22 @@ void printing(void *parameter){
     }else if(a=='S'){ //stop
     Mercury.stop();
     mv ='S';
+    c=5;
     }else if(a=='D'){
-      dtc=50;
+      dtc=100;
     }
     delay(200);
   }
 }
-//LEO EL ENCODER DEL MOTOR 3
+//PRUEBA DE NAVEGACION
+void Navigation(void *parameter){
 
+  while(1==1){
+      delay(50);
+  }
+  
+}
+//LEO EL ENCODER DEL MOTOR 3
 void readEncoder3(){
   int b= digitalRead(encoderB3);
   pos_i3=incrementarPos(b,pos_i3);
@@ -167,6 +180,9 @@ void setPins(){
   ledcAttachPin(en3, pwmChannel3);
   ledcAttachPin(en4, pwmChannel3);
 
+  //detencion de inicio 
+  mv='S';
+  delay(100);
 }
 void loop() {
   long currentTime=micros();
@@ -196,34 +212,9 @@ void loop() {
   prevPos3=pos3;
   prevPos4=pos4;
   */
-  switch (mv){ //al ser el movimiento de Mercury reestringido, asi debe ser mis calculos para cumplir con la reestriccion en las formulas
-    
-    case 'F': //forward or bakward
-    case 'B':
-         w2 =w1;
-         w3= w1;
-         w4= w1;
-        break;
-    case 'R': //sideways
-    case 'L':
-         w2=-w1;
-         w3=w2;
-         w4=w1;
-        break;
-    case 'I': //rotation
-         w2=-w1;
-         w3=w1;
-         w4=w2;
-        break;
-      
-    case 'S': //stop
-        w1=0;
-        w2=0;
-        w3=0;
-        w4=0;
-        pos1=0;
-        break;
-  }
+  //Calculo el resto de velocidades tomando en cuenta las reestricciones del movimiento:
+  calculateWS(mv,w1,w2,w3,w4,pos1); 
+  //Configuro las velocidades de cada rueda (rev/s):
   Mercury.wheel_1->setVelocity(w1);
   Mercury.wheel_2->setVelocity(w2);
   Mercury.wheel_3->setVelocity(w3);
@@ -237,18 +228,21 @@ void loop() {
   prevT=currentTime;
 
   Mercury.setPosition(odom.x, odom.y, odom.teta); //configuro la posicion de Mercury
+  // PARA VISUALIZAR LOS DATOS DE LA ODOMETRIA
   Serial.print(odom.x);
   Serial.print(" ");
   Serial.print(odom.y);
   Serial.print(" ");
   Serial.print(odom.teta);
   Serial.print(" ");
-  //Serial.print(" ");
-  Serial.print(odom.vx);
+  //Serial.print(odom.vx);
   Serial.print(" ");
-  Serial.print(odom.vy);
+  //Serial.print(odom.vy);
   Serial.println();
-  delay(1000);
+  
+  
+  delay(300);
+
 }
 
 
