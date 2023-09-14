@@ -180,14 +180,15 @@ void loop() {
   interrupts(); //las vuelvo a activar, una vez llene los datos de la posición
   //calculate the veloocity in RPM and save it
   //I know the encoder resolution is: 1 rev/2ct. ct/s*rev/2ct *60s/min
-  //RESOLUTION OF THE ENCODER 1 rev/ 12 ct.
+  //RESOLUTION OF THE ENCODER es de ct/s*0.2 = RPM. ct/s*0.2/60 = rev/s 
   /*  CODIGO PARA PROBAR LA CALIDAD DE LOS 4 ENCODERS, SE ESCOGE EL MEJOR DE LOS 4
-  float w1=calculateW(currentTime,prevPos1,pos1,prevT,vFilt1,vPrev1)*12; //rev/s
-  float w2=calculateW(currentTime,prevPos2,pos2,prevT,vFilt2,vPrev2)*12; //ct /s o rev/s
-  float w3=calculateW(currentTime,prevPos3,pos3,prevT,vFilt3,vPrev3)*12; //rev/s
-  float w4=calculateW(currentTime,prevPos4,pos4,prevT,vFilt4,vPrev4)*12; //ct/s  
+  float w1=calculateW(currentTime,prevPos1,pos1,prevT,vFilt1,vPrev1)*0.2; //RPM
+  float w2=calculateW(currentTime,prevPos2,pos2,prevT,vFilt2,vPrev2); //ct /s 
+  float w3=calculateW(currentTime,prevPos3,pos3,prevT,vFilt3,vPrev3)* 
+  float w4=calculateW(currentTime,prevPos4,pos4,prevT,vFilt4,vPrev4)* //ct/s  
   */
-  float w1 =calculateW(currentTime,prevPos1,pos1,prevT,vFilt1,vPrev1)*12; //el encoder con mejor rendimiento
+  //el encoder con mejor rendimiento
+  float w1 =calculateW(currentTime,prevPos1,pos1,prevT,vFilt1,vPrev1)*0.2/60; //convierto la velocidad de ct/s a rv/s. teniendo en cuenta la resolucion del encoder
   float w2,w3,w4;
   prevPos1=pos1;
   /*
@@ -199,7 +200,6 @@ void loop() {
     
     case 'F': //forward or bakward
     case 'B':
-    
          w2 =w1;
          w3= w1;
          w4= w1;
@@ -207,13 +207,13 @@ void loop() {
     case 'R': //sideways
     case 'L':
          w2=-w1;
-         w3=w1;
-         w4=w2;
+         w3=w2;
+         w4=w1;
         break;
     case 'I': //rotation
          w2=-w1;
-         w3=w2;
-         w4=w1;
+         w3=w1;
+         w4=w2;
         break;
       
     case 'S': //stop
@@ -242,10 +242,13 @@ void loop() {
   Serial.print(odom.y);
   Serial.print(" ");
   Serial.print(odom.teta);
+  Serial.print(" ");
   //Serial.print(" ");
-  //Serial.print(w4r);
+  Serial.print(odom.vx);
+  Serial.print(" ");
+  Serial.print(odom.vy);
   Serial.println();
-  delay(200);
+  delay(1000);
 }
 
 
