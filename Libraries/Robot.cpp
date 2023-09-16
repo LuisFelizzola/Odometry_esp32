@@ -71,3 +71,15 @@ float Robot::posA()
 {
     return TETA;
 }
+float Robot::velX()
+{
+    return Vx;
+}
+float Robot::velY()
+{
+    return Vy;
+}
+float Robot::velTeta()
+{
+    return W;
+}
