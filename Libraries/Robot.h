@@ -16,11 +16,11 @@ public:
     Wheel *wheel_2;
     Wheel *wheel_3;
     Wheel *wheel_4;
-    float X, Y, TETA;
+    float X, Y, TETA, Vx, Vy, W;
     Robot(Wheel *wheel1,
           Wheel *wheel2,
           Wheel *wheel3,
-          Wheel *wheel4, float x, float y, float teta)
+          Wheel *wheel4, float x, float y, float teta, float vx, float vy, float w)
     {
         // Create Wheel objects and assign pointers
         wheel_1 = wheel1;
@@ -30,6 +30,9 @@ public:
         X = x;
         Y = y;
         TETA = teta;
+        Vx = vx;
+        Vy = vy;
+        W = w;
     }
 
     // Destructor para liberar la memoria de los objetos Wheel
@@ -51,6 +54,9 @@ public:
     float posX();
     float posY();
     float posA();
+    float velX();
+    float velY();
+    float velTeta();
 };
 
 #endif
