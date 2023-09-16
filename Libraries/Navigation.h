@@ -20,7 +20,6 @@ class Navigation
 private:
     void inverseKinematics(float vy, float vx, float r, float lx, float ly, float w);
     void pathPlanning_Generator(Robot &robot);
-
     Movement movement;
     // VELOCIDAD ANGULAR QUE DEBEN ALCANZAR LAS RUEDAS (TARGET DEL PID)
     float w1T = 0;
@@ -36,9 +35,9 @@ private:
     float XT = 0;
     float YT = 0;
     float TETA_T = 0;
-    float dutyCicle = 0; // dutycycle al iniciar;
-    float minDuty = 100; // velocidad maxima para el controlador de los motores
-    float maxDuty = 200; // velocidad min para el controlador de los motores
+    int dutyCycle = 0; // dutycycle al iniciar;
+    int minDuty = 100; // velocidad maxima para el controlador de los motores
+    int maxDuty = 200; // velocidad min para el controlador de los motores
     bool noRight = false;
     bool noForward1 = false;
     bool noForward2 = false;
@@ -57,15 +56,15 @@ public:
     float Wmin;
     float minObstacle = 10; // distancia minima a la cual el robot detecta un objeto como obstaculo
     // variables para validar la ruta al evadir los obstaculos, si fue viable o no
-    Navigation(float xi, float yi, float tetai, float minObs, float minDT, float maxDT, float vxM, float vyM, float wM)
+    Navigation(float xi, float yi, float tetai, float minObs, int minDty, int maxDTy, float vxM, float vyM, float wM)
     {
         Xi = xi;
         Yi = yi;
         Tetai = tetai;
         minObstacle = minObs;
-        minDuty = minDT;
-        maxDuty = maxDT;
-        dutyCicle = minDT;
+        minDuty = minDty;
+        maxDuty = maxDTy;
+        dutyCycle = minDty;
         Vxmax = vxM;
         Vymax = vyM;
         Wmax = wM;
@@ -74,9 +73,10 @@ public:
         Wmin = -wM;
     };
     Navigation() = default;
-    void positionPID(PID_CONTROL &pid, Robot robot, long ct, long prevT);
-    void MovementPlanning(Robot robot, float minX, float minY, float minT, bool enable);
-    void Navigate(Robot &r, float xT, float yT, float tetaT, float disFront, float disRight, float disLeft);
+    void wheelVelocityPID(PID_CONTROL &pid, Robot &robot, long ct, long prevT, float kp, float ki, float kd, float tao);
+    void positionPID(PID_CONTROL &pid, Robot &robot, float Lx, float Ly, float r, long ct, long prevT, float kp, float ki, float kd, float tao);
+    void MovementPlanning(Robot robot, float minX, float minY, float minT);
+    void Navigate(Robot &r, float xT, float yT, float tetaT, float disFront, float disRight, float disLeft, bool enable);
 };
 
 #endif
