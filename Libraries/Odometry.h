@@ -1,6 +1,7 @@
 // funcion para incrementar la posicion de cada rueda cuando el flanco del encoder es activado
 typedef struct odometry
 {
+    float w = 0;
     float vx = 0;
     float vy = 0;
     float x = 0;
@@ -40,6 +41,7 @@ void forwardKinematics(odometry &o, float w1, float w2, float w3, float w4, floa
     float Vy = (-w1 + w2 + w3 - w4) * r / 4;               // velocidad vertical del robot
     float wz = (-w1 + w2 - w3 + w4) * (r / 4 * (Lx + Ly)); // velocidad angullar de robot (z)
     float deltaT = ((float)(ct - prevT)) / 1.0e6;          // comvierto a s
+    o.w = wz;
     o.vx = Vx;
     o.vy = Vy;
     o.x = o.x + Vx * deltaT;

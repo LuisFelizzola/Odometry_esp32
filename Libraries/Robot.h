@@ -59,6 +59,7 @@ public:
     float velY();
     float velTeta();
     char robotState();
+    void setRobotVelocity(float vx, float vy, float w);
 };
 
 #endif

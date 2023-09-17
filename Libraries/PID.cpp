@@ -32,6 +32,7 @@ float PIDController_Update(PID_CONTROL &pid, float setpoint, float measurement)
 	pid.integrator = pid.integrator + 0.5 * pid.Ki * pid.T * (error + pid.integrator);
 
 	/* Anti-wind-up via integrator clamping */
+	/*
 	if (pid.integrator > pid.limMaxInt)
 	{
 
@@ -42,7 +43,7 @@ float PIDController_Update(PID_CONTROL &pid, float setpoint, float measurement)
 
 		pid.integrator = pid.limMinInt;
 	}
-
+*/
 	/*
 	 * Derivative (band-limited differentiator)
 	 */
@@ -93,6 +94,7 @@ float PIController_Update(PID_CONTROL &pid, float setpoint, float measurement)
 	pid.integrator = pid.integrator + 0.5 * pid.Ki * pid.T * (error + pid.integrator);
 
 	/* Anti-wind-up via integrator clamping */
+	/*
 	if (pid.integrator > pid.limMaxInt)
 	{
 
@@ -103,7 +105,7 @@ float PIController_Update(PID_CONTROL &pid, float setpoint, float measurement)
 
 		pid.integrator = pid.limMinInt;
 	}
-
+*/
 	/*
 	 * Compute output and apply limits
 	 */

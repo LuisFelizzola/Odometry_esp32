@@ -65,6 +65,13 @@ void Robot::setPosition(float x, float y, float teta)
     Y = y;
     TETA = teta;
 }
+void Robot::setRobotVelocity(float vx, float vy, float w)
+{
+    Vx = vx;
+    Vy = vy;
+    W = w;
+}
+
 float Robot::posX()
 {
     return X;
@@ -89,6 +96,7 @@ float Robot::velTeta()
 {
     return W;
 }
+
 char Robot::robotState()
 {
     return state;

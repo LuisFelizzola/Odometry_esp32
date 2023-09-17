@@ -26,7 +26,10 @@ private:
     float w2T = 0;
     float w3T = 0;
     float w4T = 0;
-    bool disable = STOP; // Apagar Mercury
+    bool disable = false; // Apagar Mercury
+    bool disableX = false;
+    bool disableY = false;
+    bool disableW = false;
     // posicion inicial del robot:
     float Xi;
     float Yi;
@@ -41,12 +44,20 @@ private:
     bool noRight = false;
     bool noForward1 = false;
     bool noForward2 = false;
+    float Ux = 0;
+    float Uy = 0;
+    float Uw = 0;
+    float U = 0;
 
 public:
     // variables para la deteccion de algun obstaculo
     float xFront = 30;
     float xRight = 30;
     float xLeft = 30;
+    // cambio inicial de posicion (Util para saber los tipos de movimientos a ejecutar)
+    float DXi = 0;
+    float DYi = 0;
+    float DTetai = 0;
     // Limites fisicos del robot
     float Vxmax;
     float Vymax;
@@ -78,6 +89,18 @@ public:
     void Navigate(Robot &r, float xT, float yT, float tetaT, float disFront, float disRight, float disLeft, bool enable);
     float showX();
     float showY();
+    float showA();
+    float showU();
+    float showUx();
+    float showUy();
+    float showUw();
+    int showDuty();
+    float showWt();
+    float showDXi();
+    bool enableX();
+    bool enableY();
+    bool enableW();
+    bool enable();
 };
 
 #endif
