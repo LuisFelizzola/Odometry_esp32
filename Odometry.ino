@@ -55,7 +55,7 @@ float vFilt1=0,vFilt2=0,vFilt3=0,vFilt4=0;
 float vPrev1=0,vPrev2=0,vPrev3=0,vPrev4=0;
 int dtc;
 odometry odom;
-int KpPos=1,KiPos=1,KdPos=0,KpVel=2,KiVel=1;
+float KpPos=0.05,KiPos=0,KdPos=0,KpVel=4.8,KiVel=0.05;
 float Tau=0.0636; // fc =1/(2*pi*Tau). Valor para una fc =25Hz
 long ctPos=0,prevtPos=0,ctVel=0,prevtVel=0; // variables para el tiempo de muestreo del PID de posicion y velocidad
 PID_CONTROL pidPos;
@@ -67,7 +67,7 @@ bool enable=false;
 //struct PIDController PID;
 //posicion Inicial del robot:
 float xi=0, yi=0,tetai=0,vxi=0,vyi=0,wi=0;
-float VxMax=0.4,VyMax=0.4,Wmax=0.5; //0.4 m/s y 0.5rad/s
+float UxMax=0.8,UyMax=0.8,Uwmax=0.5; //0.4 m/s y 0.5rad/s
 float xTarget=0,yTarget=0,tetaTarget=0; // x,y, teta de objetivo
  //variable para validar que tipo de movimiento esta Mercury (pruebas)
 TaskHandle_t Tarea0,Tarea1,Tarea2,Tarea3;
@@ -78,13 +78,13 @@ Wheel wh4(motor4A, motor4B, en4,r, pwmChannel4);
 //DEFINO LOS PARAMETROS DEL OBJETO DE MI CLASE ROBOT (CREADA PARA EL ROBOT MECANUM )
 Robot Mercury(&wh1,&wh2,&wh3,&wh4,xi,yi,tetai,vxi,vyi,wi);
 float minObs=0.1; //a 10 cm es la distancia minima para detectar un obstaculo
-Navigation navigation(xi,yi,tetai,minObs,minDuty,maxDuty,VxMax,VyMax,Wmax);
+Navigation navigation(xi,yi,tetai,minObs,minDuty,maxDuty,UxMax,UyMax,Uwmax);
 void setup() {
   Serial.begin(115200);
   xTaskCreatePinnedToCore(MovementPlanning,"Tarea_0",1000,NULL,1,&Tarea0,1);
   xTaskCreatePinnedToCore(Navigation,"Tarea_1",4000,NULL,1,&Tarea1,1);
   xTaskCreatePinnedToCore(PID_POS,"Tarea_2",1000,NULL,1,&Tarea2,0);
-  xTaskCreatePinnedToCore(PID_VEL,"Tarea_3",1000,NULL,1,&Tarea3,0);
+  xTaskCreatePinnedToCore(PID_VEL,"Tarea_3",3000,NULL,1,&Tarea3,0);
   attachInterrupt(encoderA1, readEncoder1, RISING);
  // attachInterrupt(encoderA2, readEncoder2, RISING);
   //attachInterrupt(encoderA3, readEncoder3, RISING);
@@ -129,16 +129,19 @@ void Navigation(void *parameter){
       float tetaT=Serial.parseFloat();
       if(xT>0){
         xTarget=xT;
+        navigation.DXi=xTarget-Mercury.posX(); //EL DESPLAZAMIENTO INICIAL, UTIL PARA SABER SI DEBO IR HACIA DELANTE O HACIA ATRAS
       }
       if(yT>0){
         yTarget=yT;
+        navigation.DYi=yTarget-Mercury.posY();
       }
       if(tetaT>0){
         tetaTarget=tetaT;
+        navigation.DTetai=tetaTarget-Mercury.posA();
       }
     }
     navigation.Navigate(Mercury,xTarget,yTarget,tetaTarget,30,30,30,0); //30-> distancia detectada por los ultrasonicos, final valor, true or false para habilitar la navegacion
-      delay(300);
+    delay(200);
   }
 }
 
@@ -146,18 +149,17 @@ void Navigation(void *parameter){
 void MovementPlanning(void *parameter){
   while(1==1){
     navigation.MovementPlanning(Mercury,minX,minY,minT);
-    delay(400);
+    delay(100);
   }
 }
 
 
 void PID_POS(void *parameter){
   while(1==1){
-
     ctPos=micros();
     navigation.positionPID(pidPos,Mercury,Lx,Ly,r,ctPos,prevtPos,KpPos,KiPos,KdPos,Tau);
     prevtPos=ctPos;
-    delay(40); //Tmuestrec=1/10 *Tsistema 
+    delay(50); //Tmuestrec=1/10 *Tsistema 
   }
 }
 
@@ -168,7 +170,7 @@ void PID_VEL(void *parameter){
     ctVel=micros();
     navigation.wheelVelocityPID(pidVel,Mercury,ctVel,prevtVel,KpVel,KiVel);
     prevtVel=ctVel;
-    delay(50);
+    delay(80);
   }
 }
 
@@ -263,7 +265,6 @@ void setPins(){
 
   //detencion de inicio 
 
-  delay(100);
 }
 void loop() {
   long currentTime=micros();
@@ -309,18 +310,88 @@ void loop() {
   prevT=currentTime;
 
   Mercury.setPosition(odom.x, odom.y, odom.teta); //configuro la posicion de Mercury
+  Mercury.setRobotVelocity(odom.vx,odom.vy,odom.w); //configuro la velocidad de Mercury
   // PARA VISUALIZAR LOS DATOS DE LA ODOMETRIA
+  Serial.print("w1r: ");
+  Serial.print(w1r);
+  Serial.print(" X: ");
   Serial.print(navigation.showX());
-  Serial.print(" ");
-  Serial.print(navigation.showY());
-  Serial.print(" ");
-  Serial.print(Mercury.posA());
-  Serial.print(" ");
+  Serial.print(" XT: ");
   Serial.print(xTarget);
-  Serial.print(" ");
-  Serial.print(yTarget);
+  Serial.print(" DX: ");
+  Serial.print(navigation.showDXi());
+  Serial.print(" Ux: ");
+  Serial.print(navigation.showUx());
+  Serial.print(" Wt: ");
+  Serial.print(navigation.showWt());
+  Serial.print(" U: ");
+  Serial.print(navigation.showU());
+  Serial.print(" DUTYCYCLE: ");
+  Serial.print(navigation.showDuty());
+  Serial.print(" Vx :");
+  Serial.print(Mercury.velX());
+  Serial.print(" ENX :");
+  Serial.print(navigation.enableX());
+  Serial.print(" ENY :");
+  Serial.print(navigation.enableY());
+  Serial.print(" ENW :");
+  Serial.print(navigation.enableW());
+  Serial.print(" EN :");
+  Serial.print(navigation.enable());
   Serial.println();
-  
+
+  Serial.print("w1r: ");
+  Serial.print(w1r);
+  Serial.print(" Y: ");
+  Serial.print(navigation.showY());
+  Serial.print(" YT: ");
+  Serial.print(yTarget);
+  Serial.print(" Uy: ");
+  Serial.print(navigation.showUy());
+  Serial.print(" Wt: ");
+  Serial.print(navigation.showWt());
+  Serial.print(" U: ");
+  Serial.print(navigation.showU());
+  Serial.print(" DUTYCYCLE: ");
+  Serial.print(navigation.showDuty());
+  Serial.print(" Vy :");
+  Serial.print(Mercury.velY());
+  Serial.print(" ENX :");
+  Serial.print(navigation.enableX());
+  Serial.print(" ENY :");
+  Serial.print(navigation.enableY());
+  Serial.print(" ENW :");
+  Serial.print(navigation.enableW());
+  Serial.print(" EN :");
+  Serial.print(navigation.enable());
+  Serial.println(); 
+
+  Serial.print("w1r: ");
+  Serial.print(w1r);
+  Serial.print(" Teta: ");
+  Serial.print(navigation.showA());
+  Serial.print(" TetaT: ");
+  Serial.print(yTarget);
+  Serial.print(" Ux: ");
+  Serial.print(navigation.showUy());
+  Serial.print(" Wt: ");
+  Serial.print(navigation.showWt());
+  Serial.print(" U: ");
+  Serial.print(navigation.showU());
+  Serial.print(" DUTYCYCLE: ");
+  Serial.print(navigation.showDuty());
+  Serial.print(" Vteta :");
+  Serial.print(Mercury.velTeta());
+  Serial.print(" ENX :");
+  Serial.print(navigation.enableX());
+  Serial.print(" ENY :");
+  Serial.print(navigation.enableY());
+  Serial.print(" ENW :");
+  Serial.print(navigation.enableW());
+  Serial.print(" EN :");
+  Serial.print(navigation.enable());
+  Serial.println(); 
+  Serial.println(); 
   delay(500);
 
 }
