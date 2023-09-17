@@ -64,7 +64,6 @@ public:
         minObstacle = minObs;
         minDuty = minDty;
         maxDuty = maxDTy;
-        dutyCycle = minDty;
         Vxmax = vxM;
         Vymax = vyM;
         Wmax = wM;
@@ -73,10 +72,12 @@ public:
         Wmin = -wM;
     };
     Navigation() = default;
-    void wheelVelocityPID(PID_CONTROL &pid, Robot &robot, long ct, long prevT, float kp, float ki, float kd, float tao);
+    void wheelVelocityPID(PID_CONTROL &pid, Robot &robot, long ct, long prevT, float kp, float ki);
     void positionPID(PID_CONTROL &pid, Robot &robot, float Lx, float Ly, float r, long ct, long prevT, float kp, float ki, float kd, float tao);
-    void MovementPlanning(Robot robot, float minX, float minY, float minT);
+    void MovementPlanning(Robot &robot, float minX, float minY, float minT);
     void Navigate(Robot &r, float xT, float yT, float tetaT, float disFront, float disRight, float disLeft, bool enable);
+    float showX();
+    float showY();
 };
 
 #endif

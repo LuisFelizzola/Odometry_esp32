@@ -1,5 +1,5 @@
 // funcion para incrementar la posicion de cada rueda cuando el flanco del encoder es activado
-struct odometry
+typedef struct odometry
 {
     float vx = 0;
     float vy = 0;
@@ -7,6 +7,7 @@ struct odometry
     float y = 0;
     float teta = 0;
 };
+
 int incrementarPos(int b, int posI)
 {
     int i = 0;
@@ -33,7 +34,7 @@ float calculateW(long ct, int prevPos, int pos, long prevT, float &vFlt, float &
     return vFlt;
 }
 
-void forwardKinematics(struct odometry &o, float w1, float w2, float w3, float w4, float r, float Lx, float Ly, long prevT, long ct)
+void forwardKinematics(odometry &o, float w1, float w2, float w3, float w4, float r, float Lx, float Ly, long prevT, long ct)
 {
     float Vx = (w1 + w2 + w3 + w4) * r / 4;                // Velocidad longitudinal del robot
     float Vy = (-w1 + w2 + w3 - w4) * r / 4;               // velocidad vertical del robot
@@ -47,10 +48,10 @@ void forwardKinematics(struct odometry &o, float w1, float w2, float w3, float w
     o.teta = o.teta + wz * deltaT;
 }
 
-void calculateWS(char mv, float &w1, float &w2, float &w3, float &w4, int &pos)
+void calculateWS(char x, float &w1, float &w2, float &w3, float &w4, int &pos)
 {
-    switch (mv)
-    { // al ser el movimiento de Mercury reestringido, asi debe ser mis calculos para cumplir con la reestriccion en las formulas
+    switch (x)
+    { // Al ser el movimiento de Mercury reestringido, asi debe ser mis calculos para cumplir con la reestriccion en las formulas
 
     case 'F': // forward or bakward
     case 'B':

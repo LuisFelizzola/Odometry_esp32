@@ -4,11 +4,12 @@
 #include <Arduino.h>
 #include <Wheel.h>
 
-#define duty_cycle 150 // DEFINO UN DUTY_CYCLE  POR DEFECTO
+#define duty_cycle 0 // DEFINO UN DUTY_CYCLE  POR DEFECTO
 
 class Robot : public Wheel
 {
 private:
+    char state = 'S';
     void setMotor(int in, int in2, int dtc, int state1, int state2, int pwmC);
 
 public:
@@ -57,6 +58,7 @@ public:
     float velX();
     float velY();
     float velTeta();
+    char robotState();
 };
 
 #endif

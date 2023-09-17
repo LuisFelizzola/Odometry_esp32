@@ -36,13 +36,11 @@ void Navigation::positionPID(PID_CONTROL &pid, Robot &robot, float Lx, float Ly,
 
     inverseKinematics(Uy, Ux, r, Lx, Ly, Uw);
 }
-void Navigation::wheelVelocityPID(PID_CONTROL &pid, Robot &robot, long ct, long prevT, float kp, float ki, float kd, float tao)
+void Navigation::wheelVelocityPID(PID_CONTROL &pid, Robot &robot, long ct, long prevT, float kp, float ki)
 {
     float deltaT = ((float)(ct - prevT)) / 1.0e6;
     pid.Kp = kp;
     pid.Ki = ki;
-    pid.Kd = kd;
-    pid.tau = tao;
     pid.T = deltaT;
     float U = 0;
     // limites del integrador y de la señal de control
@@ -51,7 +49,7 @@ void Navigation::wheelVelocityPID(PID_CONTROL &pid, Robot &robot, long ct, long 
     pid.limMax = maxDuty;
     pid.limMin = -maxDuty;
     // aplico el PID con respecto a la velocidad w1, debido a la aproximacion y que tomo en cuenta el mejor encoder
-    U = PIDController_Update(pid, w1T, robot.wheel_1->Velocityradians());
+    U = PIController_Update(pid, w1T, robot.wheel_1->Velocityradians());
     // Me aseguro que el valor es positivo
     dutyCycle = (int)abs(U); // me aseguro que el valor es positivo
 }
@@ -64,7 +62,7 @@ void Navigation::inverseKinematics(float vy, float vx, float r, float lx, float 
     w4T = 1 / r + (vx - vy + (lx + ly) * w);
 }
 // Defino los posibles movimientos para alcanzar mi objetivo
-void Navigation::MovementPlanning(Robot robot, float minX, float minY, float minT)
+void Navigation::MovementPlanning(Robot &robot, float minX, float minY, float minT)
 {
     uint8_t d = 0; // contador para verificar si el robot ha llegado a su destino
     Xi = robot.posX();
@@ -74,21 +72,13 @@ void Navigation::MovementPlanning(Robot robot, float minX, float minY, float min
     float dx = XT - Xi;           // DESPLAZAMIENTO EN X
     float dy = YT - Yi;           // DESPLAZAMIENTO EN Y
     float dTeta = TETA_T - Tetai; // desplazamiento del ángulo teta
-    if ((disable))
-    {
-        movement.stop = true;
-    }
-    else
-    {
-        movement.stop = false;
-    }
 
-    if (dx > minX && Xi < XT)
+    if (dx > 0 && XT > 0)
     { // si el desplazamiento es una avance (1.5cm in)
         movement.moveF = true;
         movement.moveB = false;
     }
-    else if (-dx > minX && Xi > XT)
+    else if (dx < 0 && XT < 0)
     { // retroceso
         movement.moveB = true;
         movement.moveF = false;
@@ -100,12 +90,12 @@ void Navigation::MovementPlanning(Robot robot, float minX, float minY, float min
         d++;
     }
 
-    if (dy > minY && Yi < YT)
+    if (dy > 0 && YT > 0)
     {
         movement.moveR = true;
         movement.moveL = false;
     }
-    else if (-dy > minY && Yi > YT)
+    else if (dy < 0 && YT < 0)
     {
         movement.moveL = true;
         movement.moveR = false;
@@ -116,7 +106,7 @@ void Navigation::MovementPlanning(Robot robot, float minX, float minY, float min
         movement.moveR = false;
         movement.moveL = false;
     }
-    if (dTeta > minT && TETA_T > Tetai)
+    if (TETA_T > Tetai)
     {
         movement.rotate = true;
     }
@@ -133,6 +123,14 @@ void Navigation::MovementPlanning(Robot robot, float minX, float minY, float min
     else
     {
         disable = false;
+    }
+    if ((disable))
+    {
+        movement.stop = true;
+    }
+    else
+    {
+        movement.stop = false;
     }
 }
 
@@ -190,6 +188,7 @@ void Navigation::pathPlanning_Generator(Robot &robot)
     else if (movement.moveB)
     {
         // PID for velocities of the wheels
+
         robot.moveBackward(dutyCycle);
     }
     else if (movement.moveR)
@@ -236,10 +235,20 @@ void Navigation::pathPlanning_Generator(Robot &robot)
     }
     else if (movement.stop)
     {
+
         robot.stop();
     }
     else
     {
+
         robot.stop();
     }
+}
+float Navigation::showX()
+{
+    return Xi;
+}
+float Navigation::showY()
+{
+    return Yi;
 }

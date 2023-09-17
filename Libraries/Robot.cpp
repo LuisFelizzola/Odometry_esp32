@@ -2,6 +2,7 @@
 
 void Robot::moveForward(int dutyC = duty_cycle)
 {
+    state = 'F';
     setMotor(wheel_1->inPin(1), wheel_1->inPin(2), dutyC, 0, 1, wheel_1->inPin(4));
     setMotor(wheel_2->inPin(1), wheel_2->inPin(2), dutyC, 0, 1, wheel_2->inPin(4));
     setMotor(wheel_3->inPin(1), wheel_3->inPin(2), dutyC, 1, 0, wheel_3->inPin(4));
@@ -10,6 +11,7 @@ void Robot::moveForward(int dutyC = duty_cycle)
 
 void Robot::moveBackward(int dutyC = duty_cycle)
 {
+    state = 'B';
     setMotor(wheel_1->inPin(1), wheel_1->inPin(2), dutyC, 1, 0, wheel_1->inPin(4));
     setMotor(wheel_2->inPin(1), wheel_2->inPin(2), dutyC, 1, 0, wheel_2->inPin(4));
     setMotor(wheel_3->inPin(1), wheel_3->inPin(2), dutyC, 0, 1, wheel_3->inPin(4));
@@ -18,6 +20,7 @@ void Robot::moveBackward(int dutyC = duty_cycle)
 
 void Robot::moveLeft(int dutyC = duty_cycle)
 {
+    state = 'L';
     setMotor(wheel_1->inPin(1), wheel_1->inPin(2), dutyC, 0, 1, wheel_1->inPin(4));
     setMotor(wheel_2->inPin(1), wheel_2->inPin(2), dutyC, 1, 0, wheel_2->inPin(4));
     setMotor(wheel_3->inPin(1), wheel_3->inPin(2), dutyC, 1, 0, wheel_3->inPin(4));
@@ -26,6 +29,7 @@ void Robot::moveLeft(int dutyC = duty_cycle)
 
 void Robot::rotation(int dutyC = duty_cycle)
 {
+    state = 'I';
     setMotor(wheel_1->inPin(1), wheel_1->inPin(2), dutyC, 0, 1, wheel_1->inPin(4));
     setMotor(wheel_2->inPin(1), wheel_2->inPin(2), dutyC, 1, 0, wheel_2->inPin(4));
     setMotor(wheel_3->inPin(1), wheel_3->inPin(2), dutyC, 0, 1, wheel_3->inPin(4));
@@ -34,6 +38,7 @@ void Robot::rotation(int dutyC = duty_cycle)
 
 void Robot::moveRight(int dutyC = duty_cycle)
 {
+    state = 'R';
     setMotor(wheel_1->inPin(1), wheel_1->inPin(2), dutyC, 1, 0, wheel_1->inPin(4));
     setMotor(wheel_2->inPin(1), wheel_2->inPin(2), dutyC, 0, 1, wheel_2->inPin(4));
     setMotor(wheel_3->inPin(1), wheel_3->inPin(2), dutyC, 0, 1, wheel_3->inPin(4));
@@ -41,6 +46,7 @@ void Robot::moveRight(int dutyC = duty_cycle)
 }
 void Robot::stop()
 {
+    state = 'S';
     setMotor(wheel_1->inPin(1), wheel_1->inPin(2), 0, 1, 0, wheel_1->inPin(4));
     setMotor(wheel_2->inPin(1), wheel_2->inPin(2), 0, 0, 1, wheel_2->inPin(4));
     setMotor(wheel_3->inPin(1), wheel_3->inPin(2), 0, 1, 0, wheel_3->inPin(4));
@@ -82,4 +88,8 @@ float Robot::velY()
 float Robot::velTeta()
 {
     return W;
+}
+char Robot::robotState()
+{
+    return state;
 }
