@@ -48,20 +48,20 @@ const int resolution=8;
 long prevT=0; //tiempo previo
 volatile int pos_i1=0,pos_i2=0,pos_i3=0,pos_i4=0; //posicion de la rueda 1 a la 4
 int prevPos1=0, prevPos2,prevPos3=0,prevPos4=0;
-float r=0.04; //radio de la llanta
-float Lx=0.116, Ly=0.055; //MITAD DE LA DISTANCIA ENTRE LAS LLANTAS TRASERAS Y LAS LLANTAS DELANTERAS (m)
+float r=0.04; //radio de la llanta-> si modificas, modifica el MAPEO de la entrada de control al PID de vel (Wt)
+float Lx=0.116, Ly=0.055; //MITAD DE LA DISTANCIA ENTRE LAS LLANTAS TRASERAS Y LAS LLANTAS DELANTERAS (m)-> si modificas, modifica el MAPEO de la entrada de control al PID de vel (Wt)
 //variables para el filtro pasa-bajas con frecuencia de corte de 25Hz
 float vFilt1=0,vFilt2=0,vFilt3=0,vFilt4=0;
 float vPrev1=0,vPrev2=0,vPrev3=0,vPrev4=0;
 int dtc;
 odometry odom;
-float KpPos=0.05,KiPos=0,KdPos=0,KpVel=4.8,KiVel=0.05;
+float KpPos=0.2,KiPos=0,KdPos=0,KpVel=6,KiVel=1;
 float Tau=0.0636; // fc =1/(2*pi*Tau). Valor para una fc =25Hz
 long ctPos=0,prevtPos=0,ctVel=0,prevtVel=0; // variables para el tiempo de muestreo del PID de posicion y velocidad
 PID_CONTROL pidPos;
 PID_CONTROL pidVel;
 
-int minDuty=100, maxDuty=230;
+int minDuty=70, maxDuty=240;
 float minX=10,minY=10,minT=0.5; //cambios minimos permitidos
 bool enable=false;
 //struct PIDController PID;
@@ -127,15 +127,15 @@ void Navigation(void *parameter){
       float xT=Serial.parseFloat();
       float yT=Serial.parseFloat();
       float tetaT=Serial.parseFloat();
-      if(xT>0){
+      if(xT!=0){
         xTarget=xT;
         navigation.DXi=xTarget-Mercury.posX(); //EL DESPLAZAMIENTO INICIAL, UTIL PARA SABER SI DEBO IR HACIA DELANTE O HACIA ATRAS
       }
-      if(yT>0){
+      if(yT!=0){
         yTarget=yT;
         navigation.DYi=yTarget-Mercury.posY();
       }
-      if(tetaT>0){
+      if(tetaT!=0){
         tetaTarget=tetaT;
         navigation.DTetai=tetaTarget-Mercury.posA();
       }
@@ -313,7 +313,7 @@ void loop() {
   Mercury.setRobotVelocity(odom.vx,odom.vy,odom.w); //configuro la velocidad de Mercury
   // PARA VISUALIZAR LOS DATOS DE LA ODOMETRIA
   Serial.print("w1r: ");
-  Serial.print(w1r);
+  Serial.print(Mercury.wheel_1->Velocityradians());
   Serial.print(" X: ");
   Serial.print(navigation.showX());
   Serial.print(" XT: ");
@@ -355,7 +355,7 @@ void loop() {
   Serial.print(" DUTYCYCLE: ");
   Serial.print(navigation.showDuty());
   Serial.print(" Vy :");
-  Serial.print(Mercury.velY());
+  Serial.print(Mercury.velTeta());
   Serial.print(" ENX :");
   Serial.print(navigation.enableX());
   Serial.print(" ENY :");
@@ -371,9 +371,9 @@ void loop() {
   Serial.print(" Teta: ");
   Serial.print(navigation.showA());
   Serial.print(" TetaT: ");
-  Serial.print(yTarget);
-  Serial.print(" Ux: ");
-  Serial.print(navigation.showUy());
+  Serial.print(tetaTarget);
+  Serial.print(" Uw: ");
+  Serial.print(navigation.showUw());
   Serial.print(" Wt: ");
   Serial.print(navigation.showWt());
   Serial.print(" U: ");
