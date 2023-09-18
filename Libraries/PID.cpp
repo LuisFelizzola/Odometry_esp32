@@ -32,7 +32,7 @@ float PIDController_Update(PID_CONTROL &pid, float setpoint, float measurement)
 	pid.integrator = pid.integrator + 0.5 * pid.Ki * pid.T * (error + pid.integrator);
 
 	/* Anti-wind-up via integrator clamping */
-	/*
+
 	if (pid.integrator > pid.limMaxInt)
 	{
 
@@ -43,7 +43,7 @@ float PIDController_Update(PID_CONTROL &pid, float setpoint, float measurement)
 
 		pid.integrator = pid.limMinInt;
 	}
-*/
+
 	/*
 	 * Derivative (band-limited differentiator)
 	 */
@@ -91,40 +91,47 @@ float PIController_Update(PID_CONTROL &pid, float setpoint, float measurement)
 	/*
 	 * Integral
 	 */
-	pid.integrator = pid.integrator + 0.5 * pid.Ki * pid.T * (error + pid.integrator);
-
-	/* Anti-wind-up via integrator clamping */
-	/*
-	if (pid.integrator > pid.limMaxInt)
+	if (error != 0)
 	{
+		// usando la aproximacion de euler:
+		pid.integrator = pid.integrator + pid.Ki * pid.T * error;
+		/* Anti-wind-up via integrator clamping */
 
-		pid.integrator = pid.limMaxInt;
+		if (pid.integrator > pid.limMaxInt)
+		{
+
+			pid.integrator = pid.limMaxInt;
+		}
+		else if (pid.integrator < pid.limMinInt)
+		{
+
+			pid.integrator = pid.limMinInt;
+		}
+
+		/*
+		 * Compute output and apply limits
+		 */
+		pid.out = proportional + pid.integrator;
+
+		if (pid.out > pid.limMax)
+		{
+
+			pid.out = pid.limMax;
+		}
+		else if (pid.out < pid.limMin)
+		{
+
+			pid.out = pid.limMin;
+		}
+
+		/* Store error and measurement for later use */
+		pid.prevError = error;
+		pid.prevMeasurement = measurement;
 	}
-	else if (pid.integrator < pid.limMinInt)
+	else
 	{
-
-		pid.integrator = pid.limMinInt;
+		pid.out = 0;
 	}
-*/
-	/*
-	 * Compute output and apply limits
-	 */
-	pid.out = proportional + pid.integrator;
-
-	if (pid.out > pid.limMax)
-	{
-
-		pid.out = pid.limMax;
-	}
-	else if (pid.out < pid.limMin)
-	{
-
-		pid.out = pid.limMin;
-	}
-
-	/* Store error and measurement for later use */
-	pid.prevError = error;
-	pid.prevMeasurement = measurement;
 
 	/* Return controller output */
 	return pid.out;

@@ -14,6 +14,9 @@ void Navigation::positionPID(PID_CONTROL &pid, Robot &robot, float Lx, float Ly,
     pid.Kd = kd;
     pid.tau = tao;
     pid.T = deltaT;
+    Ux = 0;
+    Uy = 0;
+    Uw = 0;
     if (!disableX) // si existe un cambio en la posicion o si ya ha llegado a su destino
     {              // si el robot se esta movilizano el eje x
         // AJUSTO LOS LIMITES DEL INTEGRADOR (PARA EVITAR EL WINDUP), CON LA CONVENCION DEL 70% DE LOS LIMITES FISICOS
@@ -40,7 +43,7 @@ void Navigation::positionPID(PID_CONTROL &pid, Robot &robot, float Lx, float Ly,
         Uw = PIDController_Update(pid, TETA_T, Tetai);
     }
 
-    inverseKinematics(Uy, Ux, r, Lx, Ly, Uw);
+    inverseKinematics(Ux, Uy, r, Lx, Ly, Uw);
 }
 void Navigation::wheelVelocityPID(PID_CONTROL &pid, Robot &robot, long ct, long prevT, float kp, float ki)
 {
@@ -51,10 +54,11 @@ void Navigation::wheelVelocityPID(PID_CONTROL &pid, Robot &robot, long ct, long 
         pid.Ki = ki;
         pid.T = deltaT;
         // limites del integrador y de la señal de control
-        pid.limMaxInt = 0.7 * maxDuty;
-        pid.limMinInt = 0.7 * -maxDuty;
+        pid.limMaxInt = 0.5 * maxDuty;
+        pid.limMinInt = 0.5 * -maxDuty;
         pid.limMax = maxDuty;
         pid.limMin = -maxDuty;
+
         // aplico el PID con respecto a la velocidad w1, debido a la aproximacion y que tomo en cuenta el mejor encoder
         U = PIController_Update(pid, w1T, robot.wheel_1->Velocityradians());
         dutyCycle = (int)abs(U); // me aseguro que el valor es positivo
@@ -91,13 +95,17 @@ void Navigation::wheelVelocityPID(PID_CONTROL &pid, Robot &robot, long ct, long 
         robot.stop();
     }
 }
-void Navigation::inverseKinematics(float vy, float vx, float r, float lx, float ly, float w)
+void Navigation::inverseKinematics(float vx, float vy, float r, float lx, float ly, float w)
 {
     if (!disable)
     {
         if (vx != 0 || vy != 0 || w != 0)
         {
-            w1T = 1 / r + (vx - vy - (lx + ly) * w);
+            w1T = (1 / r) * (vx - vy - (lx + ly) * w);
+            if (disableW)
+            {
+                w1T = 0.785 * w1T;
+            }
         }
         else
         {
