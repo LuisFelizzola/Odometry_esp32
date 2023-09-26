@@ -42,6 +42,10 @@ void Navigation::positionPID(PID_CONTROL &pid, Robot &robot, float Lx, float Ly,
         pid.limMin = Wmin;
         Uw = PIDController_Update(pid, TETA_T, Tetai);
     }
+    else
+    {
+        robot.stop();
+    }
 
     inverseKinematics(Ux, Uy, r, Lx, Ly, Uw);
 }
@@ -92,7 +96,7 @@ void Navigation::wheelVelocityPID(PID_CONTROL &pid, Robot &robot, long ct, long 
     }
     else
     {
-        robot.stop();
+        // robot.stop();
     }
 }
 void Navigation::inverseKinematics(float vx, float vy, float r, float lx, float ly, float w)
@@ -102,7 +106,7 @@ void Navigation::inverseKinematics(float vx, float vy, float r, float lx, float 
         if (vx != 0 || vy != 0 || w != 0)
         {
             w1T = (1 / r) * (vx - vy - (lx + ly) * w);
-            if (disableW)
+            if (disableW) // if the robot is not rotating
             {
                 w1T = 0.785 * w1T;
             }
@@ -119,7 +123,7 @@ void Navigation::inverseKinematics(float vx, float vy, float r, float lx, float 
         // w3T = 1 / r + (vx + vy - (lx + ly) * w);
         // w4T = 1 / r + (vx - vy + (lx + ly) * w);
     }
-    else
+    else if (!obstacle)
     {
         w1T = 0;
         w2T = 0;
@@ -166,112 +170,98 @@ void Navigation::MovementPlanning(Robot &robot, float minX, float minY, float mi
 
 void Navigation::Navigate(Robot &r, float xT, float yT, float tetaT, float disFront, float disRight, float disLeft, bool disA = STOP)
 {
-    // X,Y AND TETA TARGET:
+    xFront = disFront;
+    xRight = disRight;
+    xLeft = disLeft;
+    // si el objetivo cambio:
+    if (XT != xT) // el objetivo en X cambio:
+    {
+        disableX = false;
+    }
+    if (YT != yT) // el objetivo en Y cambio:
+    {
+        disableY = false;
+    }
+    if (TETA_T != tetaT) // el objetivo en Teta_T cambio:
+    {
+        disableW = false;
+    }
     XT = xT;
     YT = yT;
     TETA_T = tetaT;
-    xFront = disFront;
-    xLeft = disLeft;
-    xRight = disRight;
-    if (disA)
+    // si encuentra algun obstaculo mientras se esta moviendo:
+    if (((xFront < minObstacle) && !disableX) || ((xLeft < minObstacle) && !disableY && DYi < 0) || ((xRight < minObstacle) && !disableY && DYi > 0))
+    {
+        obstacle = true;
+        disable = true;
+        // reinicio las variables para la evasion de obstaculos:
+    }
+    else
+    {
+        // reinicio las variables para la evasion de obstaculos:
+        noRight = false;
+        noForward1 = false;
+        noForward2 = false;
+        // habilito nuevamente el PID de velocidad y deshabilito la evacion de obstaculos
+        disable = false;
+        obstacle = false;
+    }
+    pathPlanning_Generator(r); // cambiar su movimiento en caso de encontrar algun obstaculo
+    if (disA)                  // si es deshabilitado por orden externa
     {
         disable = true;
+        obstacle = false;
     }
     else
     {
         disable = false;
     }
-    // pathPlanning_Generator(r);
 }
 void Navigation::pathPlanning_Generator(Robot &robot)
 {
-    if (movement.moveF && xFront > minObstacle)
-    { // una vez el obstaculo de enfrente ha sido evadido, puedo reiniciar las evaciones
-        noRight = false;
-    }
-    else if (movement.moveR && xRight > minObstacle)
-    { // para un obstaculo de la derecha
-        noForward1 = false;
-    }
-    else if (movement.moveL && xLeft > minObstacle)
-    { // para un obstaculo de la izquiera
-        noForward2 = false;
-    }
-
-    if (movement.moveF)
+    // Si se encuentra algun obstaculo durante el movimiento:
+    if (obstacle)
     {
-        // PID for velocities of the wheels
-        if (xFront > minObstacle)
-        {
-            robot.moveForward(dutyCycle);
+        if (!disableX)
+        { // si tiene movimiento en el ejeX
+            if (!noRight && xRight > minObstacle)
+            {
+                robot.moveRight(120);
+            }
+            else if (xFront < minObstacle && xLeft > minObstacle)
+            {
+                noRight = true;
+                robot.moveLeft(120);
+            }
         }
-        else if (xFront < minObstacle && !noRight && xRight > minObstacle)
-        {
-            robot.moveRight(100);
+        else if (!disableY && DYi > 0)
+        { // si el obstaculo esta cuando el robot se mueve hacia la derecha
+            if (xRight < minObstacle && !noForward1 && xFront > minObstacle)
+            {
+                robot.moveForward(100);
+            }
+            else if (xRight < minObstacle)
+            {
+                noForward1 = true;
+                robot.moveBackward(100);
+            }
         }
-        else if (xFront < minObstacle && xLeft > minObstacle)
-        {
-            noRight = true;
-            robot.moveLeft(100);
+        else if (!disableY && DYi < 0)
+        { // si el obstaculo esta cuando se mueve a l aizquierda
+            if (xLeft < minObstacle && !noForward2 && xFront > minObstacle)
+            {
+                robot.moveForward(100);
+            }
+            else if (xLeft < minObstacle)
+            {
+                noForward2 = true;
+                robot.moveBackward(100);
+            }
         }
-    }
-    else if (movement.moveB)
-    {
-        // PID for velocities of the wheels
-
-        robot.moveBackward(dutyCycle);
-    }
-    else if (movement.moveR)
-    {
-        if (xRight > minObstacle)
+        else
         {
-            // PID for velocities of the wheels
-            robot.moveRight(dutyCycle);
+            obstacle = false;
         }
-        else if (xRight < minObstacle && !noForward1 && xFront > minObstacle)
-        {
-            robot.moveForward(100);
-        }
-        else if (xRight < minObstacle)
-        {
-            noForward1 = true;
-            robot.moveBackward(100);
-        }
-    }
-    else if (movement.moveL)
-    {
-        if (xLeft > minObstacle)
-        {
-            // PID for velocities of the wheels
-            robot.moveLeft(dutyCycle);
-        }
-        else if (xLeft < minObstacle && !noForward2 && xFront > minObstacle)
-        {
-            robot.moveForward(100);
-        }
-        else if (xLeft < minObstacle)
-        {
-            noForward2 = true;
-            robot.moveBackward(100);
-        }
-    }
-    else if (movement.rotate)
-    {
-        if (xLeft > minObstacle && xRight > minObstacle)
-        {
-            // PID for velocities of the wheels
-            robot.rotation(dutyCycle);
-        }
-    }
-    else if (movement.stop)
-    {
-
-        robot.stop();
-    }
-    else
-    {
-
-        robot.stop();
     }
 }
 float Navigation::showX()

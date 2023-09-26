@@ -20,7 +20,8 @@ CODIGO PARA LEER LA VELOCIDAD Y ESTIMAR LA POSICION DEL ROBOT
 #define motor1A 2
 #define motor1B 4
 #define en1 14
-#define motor2A 18
+#de
+fine motor2A 18
 #define motor2B 19
 #define en2 21
 //RUEDAS TRASERAS
@@ -31,8 +32,8 @@ CODIGO PARA LEER LA VELOCIDAD Y ESTIMAR LA POSICION DEL ROBOT
 #define motor4B 12
 #define en4 15
 
-#define encoderA1 33
-#define encoderB1 32
+#define encoderA1 32
+#define encoderB1 33
 #define encoderA2 27 
 #define encoderB2 34
 
@@ -55,7 +56,7 @@ float vFilt1=0,vFilt2=0,vFilt3=0,vFilt4=0;
 float vPrev1=0,vPrev2=0,vPrev3=0,vPrev4=0;
 int dtc;
 odometry odom;
-float KpPos=0.2,KiPos=0,KdPos=0,KpVel=6,KiVel=1;
+float KpPos=0.8,KiPos=0,KdPos=0,KpVel=7,KiVel=1;
 float Tau=0.0636; // fc =1/(2*pi*Tau). Valor para una fc =25Hz
 long ctPos=0,prevtPos=0,ctVel=0,prevtVel=0; // variables para el tiempo de muestreo del PID de posicion y velocidad
 PID_CONTROL pidPos;
@@ -77,7 +78,7 @@ Wheel wh3(motor3A, motor3B, en3,r, pwmChannel3);
 Wheel wh4(motor4A, motor4B, en4,r, pwmChannel4);
 //DEFINO LOS PARAMETROS DEL OBJETO DE MI CLASE ROBOT (CREADA PARA EL ROBOT MECANUM )
 Robot Mercury(&wh1,&wh2,&wh3,&wh4,xi,yi,tetai,vxi,vyi,wi);
-float minObs=0.1; //a 10 cm es la distancia minima para detectar un obstaculo
+float minObs=10; //a 10 cm es la distancia minima para detectar un obstaculo
 Navigation navigation(xi,yi,tetai,minObs,minDuty,maxDuty,UxMax,UyMax,Uwmax);
 void setup() {
   Serial.begin(115200);
@@ -261,7 +262,7 @@ void setPins(){
   ledcAttachPin(en1,pwmChannel);
   ledcAttachPin(en2,pwmChannel2);
   ledcAttachPin(en3, pwmChannel3);
-  ledcAttachPin(en4, pwmChannel3);
+  ledcAttachPin(en4, pwmChannel4);
 
   //detencion de inicio 
 

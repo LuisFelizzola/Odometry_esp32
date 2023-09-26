@@ -30,6 +30,7 @@ private:
     bool disableX = false;
     bool disableY = false;
     bool disableW = false;
+    bool obstacle = false;
     // posicion inicial del robot:
     float Xi;
     float Yi;
@@ -39,7 +40,7 @@ private:
     float YT = 0;
     float TETA_T = 0;
     int dutyCycle = 0; // dutycycle al iniciar;
-    int minDuty = 100; // velocidad maxima para el controlador de los motores
+    int minDuty = 70;  // velocidad maxima para el controlador de los motores
     int maxDuty = 200; // velocidad min para el controlador de los motores
     bool noRight = false;
     bool noForward1 = false;
